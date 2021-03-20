@@ -1,5 +1,5 @@
 ---
-compose_vmware_tag_ansible_groups_keycloak:
+compose_vmware_tag_ansible_groups_sso:
   keycloak:
     mounts:
       app:
