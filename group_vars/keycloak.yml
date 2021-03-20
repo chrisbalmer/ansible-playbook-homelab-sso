@@ -1,0 +1,22 @@
+---
+compose_vmware_tag_ansible_groups_keycloak:
+  keycloak:
+    mounts:
+      app:
+        local: /mnt/keycloak/app
+        remote: "{{ nfs_server }}:/mnt/POOL_A/docker/keycloak/app"
+      db:
+        local: /mnt/keycloak/db
+        remote: "{{ nfs_server }}:/mnt/POOL_A/docker/keycloak/db"
+    images:
+      app: "{{ docker_registry }}/quay.io/keycloak/keycloak:12.0.4"
+      db: "{{ docker_registry }}/postgres:13.2"
+    user: 1012
+    group: 1014
+    http_port: 8080
+    domain: sso.balmerfamilyfarm.com
+    app_user: "{{ lookup('onepassword', 'keycloak', field='username', vault='homelab', username=op_email, subdomain=op_domain, secret_key=op_key, master_password=op_password) }}"
+    app_pass: "{{ lookup('onepassword', 'keycloak', field='password', vault='homelab', username=op_email, subdomain=op_domain, secret_key=op_key, master_password=op_password) }}"
+    db_user: "{{ lookup('onepassword', 'keycloak', section='db', field='username', vault='homelab', username=op_email, subdomain=op_domain, secret_key=op_key, master_password=op_password) }}"
+    db_pass: "{{ lookup('onepassword', 'keycloak', section='db', field='password', vault='homelab', username=op_email, subdomain=op_domain, secret_key=op_key, master_password=op_password) }}"
+    db_name: keycloak

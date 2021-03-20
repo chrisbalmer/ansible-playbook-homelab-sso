@@ -1,0 +1,15 @@
+- name: Setup SSO Servers
+  hosts: sso
+  gather_facts: yes
+  become: yes
+  pre_tasks:
+    - name: Combine composes
+      set_fact:
+        composes: "{{ composes|default({}) | combine(hostvars[inventory_hostname]['compose_' + item]|default({})) }}"
+      loop: "{{ group_names }}"
+  roles:
+    - chrisbalmer.yum-repos
+    - chrisbalmer.firewall
+    - chrisbalmer.nfs
+    - chrisbalmer.simple-docker
+    - chrisbalmer.docker-compose

@@ -1,0 +1,63 @@
+version: '3.3'
+networks:
+    traefik:
+        external:
+            name: "{{ traefik_network }}"
+    keycloak:
+        external: false
+services:
+    db:
+        image: "{{ composes.keycloak.images.db }}"
+        user: "{{ composes.keycloak.user }}:{{ composes.keycloak.group }}"
+        restart: always
+        environment:
+            - "POSTGRES_USER={{ composes.keycloak.db_user }}"
+            - "POSTGRES_PASSWORD={{ composes.keycloak.db_pass }}"
+            - "POSTGRES_DB={{ composes.keycloak.db_name }}"
+        networks:
+            - keycloak
+        volumes:
+            - "{{ composes.keycloak.mounts.db.local }}:/var/lib/postgresql/data"
+{% if splunk.hec_endpoint is defined %}
+        logging:
+            driver: splunk
+            options:
+                splunk-url: "{{ splunk.hec_endpoint }}"
+                splunk-token: "{{ splunk.hec_token }}"
+                splunk-insecureskipverify: "{{ splunk.hec_skip_verify }}"
+                splunk-format: "{{ splunk.hec_format }}"
+{% endif %}
+    app:
+        image: "{{ composes.keycloak.images.app }}"
+        environment:
+            - "USER_UID={{ composes.keycloak.user }}"
+            - "USER_GID={{ composes.keycloak.group }}"
+            - "DB_VENDOR=postgres"
+            - "DB_DATABASE={{ composes.keycloak.db_name }}"
+            - "DB_USER={{ composes.keycloak.db_user }}"
+            - "DB_PASSWORD={{ composes.keycloak.db_pass }}"
+            - "DB_ADDR=db:5432"
+            - "KEYCLOAK_USER={{ composes.keycloak.app_user }}"
+            - "KEYCLOAK_PASSWORD={{ composes.keycloak.app_pass }}"
+        restart: always
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.keycloak.rule=Host(`{{ composes.keycloak.domain }}`)"
+            - "traefik.http.routers.keycloak.tls=true"
+            - "traefik.http.routers.keycloak.tls.certresolver=letsencrypt"
+            - "traefik.http.services.keycloak.loadbalancer.server.port={{ composes.keycloak.http_port }}"
+            - "traefik.docker.network={{ traefik_network }}"
+        networks:
+            - keycloak
+            - traefik
+{% if splunk.hec_endpoint is defined %}
+        logging:
+            driver: splunk
+            options:
+                splunk-url: "{{ splunk.hec_endpoint }}"
+                splunk-token: "{{ splunk.hec_token }}"
+                splunk-insecureskipverify: "{{ splunk.hec_skip_verify }}"
+                splunk-format: "{{ splunk.hec_format }}"
+{% endif %}
+        depends_on:
+            - db
