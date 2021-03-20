@@ -9,7 +9,7 @@ compose_vmware_tag_ansible_groups_sso:
         local: /mnt/keycloak/db
         remote: "{{ nfs_server }}:/mnt/POOL_A/docker/keycloak/db"
     images:
-      app: "{{ docker_registry }}/quay.io/keycloak/keycloak:12.0.4"
+      app: "{{ docker_registry }}/chrisbalmer/keycloak:12.0.4"
       db: "{{ docker_registry }}/postgres:13.2"
     user: 1012
     group: 1014
