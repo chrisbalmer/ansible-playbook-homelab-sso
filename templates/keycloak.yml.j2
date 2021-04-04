@@ -40,6 +40,7 @@ services:
             - "KEYCLOAK_USER={{ composes.keycloak.app_user }}"
             - "KEYCLOAK_PASSWORD={{ composes.keycloak.app_pass }}"
             - "KEYCLOAK_FRONTEND_URL=https://{{ composes.keycloak.domain }}/auth/"
+            - "PROXY_ADDRESS_FORWARDING=true"
         restart: always
         labels:
             - "traefik.enable=true"
